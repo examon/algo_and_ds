@@ -1,36 +1,54 @@
-import matplotlib.pyplot as plt
+"""
+needs:
 
+    pygraphviz
+    pydotplus
+    networkx
+    matplotlib
+"""
 import networkx as nx
+import matplotlib.pyplot as plot
 
-G=nx.Graph()
-nodes = [0,1,2,3,4,5,6,7]
-edges = [(0,1),(1,2),(2,3),(3,0),(4,5),(5,6),(6,7),(7,4)]
+G=nx.MultiDiGraph()
+nodes = ['a','b','c','d','e','f','g']
+edges = [('a','b'),('b','c'),('b','d'),('a','e'),('e','f'),('e','g')]
+
 G.add_nodes_from(nodes)
 G.add_edges_from(edges)
-G.node[1] = 'test'
-G[2][3]['value'] = 100
-G[0][1] = 9
 
 
-def draw(graph: object, nodes: list, edges: list):
-    pos=nx.circular_layout(G)
+def draw(graph: object, nodes: list, edges: list,
+         root=nodes[0], output="", layout='circo',
+         node_size=1000, node_color='w', node_labels=True,
+         edge_width=1.0, edge_color='k', edge_labels=True, edge_arrows=False):
 
-    nx.draw_networkx_nodes(G,pos, node_size=2000, node_color='w')
-    nx.draw_networkx_edges(G,pos)
+    # graphviz prog options:
+    # 'dot' = good for trees
+    # 'circo' = seems good for others
+    # 'neato' = looks good when circo crosses edges
+    layout_map = {'tree': 'dot', 'neat': 'neato', 'neat2': 'circo'}
+    pos = nx.nx_pydot.graphviz_layout(graph, root=root, prog=layout_map[layout])
 
-    node_labels = {}
-    for node in G.nodes():
-        node_labels[node] = node
-    nx.draw_networkx_labels(G, pos, node_labels)
+    nx.draw_networkx_nodes(graph,pos, node_size=node_size,
+                           node_color=node_color)
+    nx.draw_networkx_edges(graph, pos, width=edge_width, edge_color=edge_color,
+                           arrows=edge_arrows)
 
-    edge_labels = {}
-    for edge in G.edges():
-        edge_labels[edge] = G[edge[0]][edge[1]]
-    nx.draw_networkx_edge_labels(G, pos, edge_labels)
+    if node_labels:
+        node_labels = {}
+        for node in graph.nodes():
+            node_labels[node] = node
+        nx.draw_networkx_labels(graph, pos, node_labels)
 
+    if edge_labels:
+        edge_labels = {}
+        for edge in graph.edges():
+            edge_labels[edge] = G[edge[0]][edge[1]]
+        nx.draw_networkx_edge_labels(graph, pos, edge_labels)
 
-    plt.axis('off')
-    #plt.savefig("labels_and_colors.png") # save as png
-    plt.show() # display
+    plot.axis('off')
+    if output != "":
+        plot.savefig(output)
+    plot.show()
 
-draw(G, nodes, edges)
+draw(G, nodes, edges, layout='neat2', output="test.png", edge_arrows=True)
